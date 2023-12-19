@@ -16,11 +16,6 @@ class IsNotGuest
      */
     public function handle(Request $request, Closure $next)
     {
-        // return $next($request);
-        // redirect()->route('login');
-        // route('login1');
-        return $request->user() ? $next($request) : route('sign-in');
-
-        // return $request->user() ? $next($request) : dd(999);
+        return $request->user() ? $next($request) : redirect(route('sign-in'));
     }
 }
