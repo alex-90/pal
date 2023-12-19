@@ -5,6 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 
+use App\Http\Requests\UserAuthRequest;
+use App\Http\Requests\UserCreateRequest;
+
+use Auth;
+use Illuminate\Support\Facades\Hash;
+
 class UserController extends Controller
 {
     /**
@@ -22,10 +28,10 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
-    {
-        //
-    }
+    // public function create()
+    // {
+    //     //
+    // }
 
     /**
      * Store a newly created resource in storage.
@@ -82,4 +88,55 @@ class UserController extends Controller
     {
         //
     }
+
+    
+    public function create(UserCreateRequest $request)
+    {
+        $login = $request->input('login');
+        $password = $request->input('password');
+        $remember = !!$request->input('remember');
+
+        $user = User::where('login', $login)->first();
+
+        if ($user) {
+            return redirect()->route('sign-in')->withErrors('Username already exist!');
+        }
+
+        if(!$user){
+            $user = new User;
+
+            $user->login = $login;
+            $user->password = Hash::make($password);
+            
+            $user->save();
+
+            Auth::login($user, $remember);
+            
+            return redirect()->route('home');
+        }        
+    }
+
+
+
+    public function login(UserAuthRequest $request)
+    {
+        $login = $request->input('login');
+        $password = $request->input('password');
+        $remember = !!$request->input('remember');
+
+        $user = User::where('login', $login)->first();
+
+        if(!$user){
+            return back()->withErrors('Username incorrect!');
+        }
+
+        if (!Hash::check($password, $user->password)) {
+            return back()->withErrors('Password incorrect!');
+        }
+
+        Auth::login($user, $remember);
+
+        return redirect()->route('home');
+    }
+
 }
