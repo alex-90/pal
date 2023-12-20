@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SiteController;
+use App\Http\Controllers\NoteController;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,13 +16,6 @@ use App\Http\Controllers\SiteController;
 | contains the "web" middleware group. Now create something great!
 |
 */
-
-// Route::get('/', [SiteController::class, 'index']);
-Route::get('/', [SiteController::class, 'index'])->name('home');
-
-// Route::get('/', function () {
-//     return view('welcome');
-// });
 
 Route::get('sign-in', function () {
     return view('sign-in');
@@ -35,8 +29,14 @@ Route::post('sign-in', [UserController::class, 'login']);
 Route::post('sign-up', [UserController::class, 'create']);
 
 Route::middleware('isNotGuest')->group(function () {
+
+    Route::get('/', function () {
+        return view('index');
+    })->name('home');
+
     Route::get('test', function () {
-        dd(555);
         dd(Auth::user());
     });
+
+    Route::resource('note', NoteController::class);
 });

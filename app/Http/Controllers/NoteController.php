@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Note;
 use Illuminate\Http\Request;
 
+use App\Http\Requests\NoteCreateRequest;
+use App\Http\Requests\NoteUpdateRequest;
+
 class NoteController extends Controller
 {
     /**
@@ -12,9 +15,17 @@ class NoteController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $notes = Note::where([
+            'user_id' => $request->user()->id,
+        ])->get();
+
+        return response()->json($notes);
+
+        // return view('notes.index', [
+        //     'notes' => $notes,
+        // ]);
     }
 
     /**
@@ -24,7 +35,7 @@ class NoteController extends Controller
      */
     public function create()
     {
-        //
+        return view('notes.create');
     }
 
     /**
@@ -33,9 +44,19 @@ class NoteController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    // public function store(Request $request)
+    public function store(NoteCreateRequest $request)
     {
-        //
+        $title = $request->input('title');
+        $content = $request->input('content');
+
+        Note::create([
+            'user_id' => $request->user()->id,
+            'title' => $title,
+            'content' => $content,
+        ]);
+
+        return redirect()->route('note.index');
     }
 
     /**
@@ -67,9 +88,13 @@ class NoteController extends Controller
      * @param  \App\Models\Note  $note
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Note $note)
+    public function update(NoteUpdateRequest $request, Note $note)
     {
-        //
+        if ($note->user_id !== $request->user()->id) {
+            abort(403);
+        }
+        
+        $note->update($request->validated());
     }
 
     /**
@@ -78,8 +103,12 @@ class NoteController extends Controller
      * @param  \App\Models\Note  $note
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Note $note)
+    public function destroy(Request $request, Note $note)
     {
-        //
+        if ($note->user_id !== $request->user()->id) {
+            abort(403);
+        }
+
+        $note->delete();
     }
 }
